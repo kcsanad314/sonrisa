@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/backend/">
+    <Project Path="backend/Sonrisa.Api.Tests/Sonrisa.Api.Tests.csproj" />
     <Project Path="backend/Sonrisa.Api/Sonrisa.Api.csproj" />
   </Folder>
 </Solution>

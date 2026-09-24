@@ -1,6 +1,6 @@
 # Sonrisa
 
-Local, single-user earthquake alert prototype. The repository currently contains the .NET 10/Angular 22 scaffold, EF Core 10 SQLite model, and one initial migration. Alert matching, polling, and notification sending are later milestones.
+Local, single-user earthquake alert prototype. The repository contains the .NET 10/Angular 22 scaffold, EF Core 10 SQLite model, one initial migration, and fixture-tested earthquake matching and pending-delivery creation. Polling and notification sending are later milestones.
 
 ## Prerequisites
 
@@ -17,6 +17,7 @@ From the repository root:
 dotnet tool restore
 dotnet restore Sonrisa.slnx
 dotnet build Sonrisa.slnx
+dotnet test Sonrisa.slnx
 cd backend/Sonrisa.Api
 dotnet tool run dotnet-ef database update
 dotnet run
