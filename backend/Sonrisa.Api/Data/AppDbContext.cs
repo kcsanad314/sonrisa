@@ -7,6 +7,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 {
     public DbSet<EarthquakeEvent> EarthquakeEvents => Set<EarthquakeEvent>();
     public DbSet<Alert> Alerts => Set<Alert>();
+    public DbSet<AlertChannel> AlertChannels => Set<AlertChannel>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,6 +24,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<Alert>(entity =>
         {
             entity.Property(item => item.Name).IsRequired();
+        });
+
+        modelBuilder.Entity<AlertChannel>(entity =>
+        {
+            entity.HasKey(item => new { item.AlertId, item.Channel });
+            entity.Property(item => item.Channel).HasConversion<string>();
+            entity.HasOne<Alert>()
+                .WithMany()
+                .HasForeignKey(item => item.AlertId);
         });
 
         modelBuilder.Entity<Delivery>(entity =>

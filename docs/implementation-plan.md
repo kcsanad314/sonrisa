@@ -2,7 +2,7 @@
 
 ## Finished version
 
-The local operator can create, edit, pause, and delete magnitude-threshold alerts; select email and/or Slack; and see recent earthquakes, alerts, and delivery results in an admin view. A scheduled poll ingests a documented USGS feed. A fixture-driven demo proves the full path without waiting for a live event. Setup instructions cover credentials and reproduction.
+The local operator can create, edit, enable, and disable magnitude-threshold alerts; select email and/or Slack; and see recent earthquakes, alerts, and delivery results in an admin view. A scheduled poll ingests a documented USGS feed. A fixture-driven demo proves the full path without waiting for a live event. Setup instructions cover credentials and reproduction.
 
 The prototype has no authentication, geographic rules, multiple event types, generic rule editor, Slack OAuth, digesting, or production reliability claim.
 
@@ -15,7 +15,8 @@ One ASP.NET Core .NET 10 application hosts the API and polling job. Angular prov
 | Record | Minimum fields and rule |
 | --- | --- |
 | `EarthquakeEvent` | ID, USGS event ID (unique), occurred UTC, first seen UTC, magnitude (`double`), place, title, source URL. |
-| `Alert` | ID, name, minimum magnitude (`double`), enabled, email enabled, Slack enabled, created UTC, updated UTC, optional deleted UTC. Deletion can hide an alert while retaining delivery history. |
+| `Alert` | ID, name, minimum magnitude (`double`), enabled, created UTC, updated UTC. No deletion action. |
+| `AlertChannel` | Alert ID and channel, unique together. Stores an alert's selected channels without per-channel columns on `Alert`. |
 | `Delivery` | ID, earthquake ID, alert ID, channel, status, attempt count, last attempt UTC, last error. Unique on earthquake + alert + channel. |
 
 Store timestamps as UTC `DateTime`. No generic event payload, source registry, user table, destination table, or poll-status table is needed. Logs can show poll failures; the admin page focuses on events and delivery results. A small bounded retry for failed deliveries is useful if time permits; failure visibility is required.
@@ -31,7 +32,7 @@ Existing feed events must not trigger alerts created later. Repeated polls must 
 | 5–9 h | Fixture event, matching, delivery records, test sender. `feat: match earthquakes and track deliveries` | Threshold boundary works; repeat processing is deduplicated; prior events do not alert. |
 | 9–12 h | USGS adapter and polling job. `feat: ingest earthquake feed` | Repeated poll is idempotent; source failure is logged; first poll sends no old events. |
 | 12–16 h | Email and Slack senders. `feat: send email and Slack alerts` | Both channels send to controlled destinations; failures are recorded; retry does not duplicate a delivery row. |
-| 16–20 h | Alert setup and admin view. `feat: manage alerts and inspect results` | Create/edit/pause/delete work; recent events and failed deliveries are visible; fixture demo is repeatable. |
+| 16–20 h | Alert setup and admin view. `feat: manage alerts and inspect results` | Create/edit/enable/disable work; recent events and failed deliveries are visible; fixture demo is repeatable. |
 | 20–24 h | End-to-end review and submission artifacts. `docs: record demo and validation` | Fresh-checkout setup works; README, exact prompt history, decisions, checks, rejected outputs, and limits are in the repo. |
 
 Prefer a small, working vertical slice over a generic rule engine, plugin loader, message broker, separate worker service, or elaborate admin dashboard. If setup or integrations consume extra time, reduce UI polish and optional retry behavior before cutting the end-to-end path or validation evidence.

@@ -1,6 +1,6 @@
 # Sonrisa
 
-Local, single-user earthquake alert prototype. The repository currently contains the .NET 10/Angular 22 scaffold, EF Core 10 SQLite model, and initial migration. Alert matching, polling, and notification sending are later milestones.
+Local, single-user earthquake alert prototype. The repository currently contains the .NET 10/Angular 22 scaffold, EF Core 10 SQLite model, and migrations. Alert matching, polling, and notification sending are later milestones.
 
 ## Prerequisites
 
