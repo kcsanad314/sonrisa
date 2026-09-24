@@ -1,10 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using Sonrisa.Api.Alerts;
+using Sonrisa.Api.Api;
 using Sonrisa.Api.Data;
 using Sonrisa.Api.Ingestion;
 using Sonrisa.Api.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
@@ -29,5 +34,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapOperatorEndpoints();
 
 app.Run();

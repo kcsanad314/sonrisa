@@ -1,6 +1,6 @@
 # Sonrisa
 
-Local, single-user earthquake alert prototype. The repository contains the .NET 10/Angular 22 scaffold, EF Core 10 SQLite model, fixture-tested earthquake matching, USGS ingestion, and pending-delivery processing through email or Slack.
+Local, single-user earthquake alert prototype built with .NET 10, Angular 22, EF Core 10, and SQLite. The operator page manages alerts and shows recent earthquakes and delivery results. The backend polls USGS and sends pending notifications through email or Slack.
 
 ## Prerequisites
 
@@ -34,6 +34,12 @@ Set these environment variables locally before starting the API. Use your actual
 | Slack | `Notifications__Slack__WebhookUrl` (an HTTPS incoming webhook URL). |
 
 The delivery worker checks Pending rows every 30 seconds, processes at most 100 per pass, and records the attempt time and count before sending. It marks each result Sent or Failed and records a useful error without storing destinations or credentials. Other pending deliveries continue after a send failure. Failed rows are not retried automatically. A crash after a provider accepts a message but before Sent is saved can result in a duplicate send on restart.
+
+## Local operator demo
+
+Run the API with its Development launch profile (`dotnet run` from `backend/Sonrisa.Api`) and the Angular dev server (`npm start` from `frontend`). Open `http://localhost:4200`. The Angular dev server proxies `/api` to the API on `localhost:5003`.
+
+Create an enabled alert, choose Email, Slack, or both, and set a threshold at or below the demo magnitude. Use **Create demo earthquake** in the Local demo section. This Development-only action writes one marked fixture event and calls the same matching and pending-delivery creation service as USGS ingestion. The notification worker processes those Pending rows on its next pass; the page refreshes results every 15 seconds. Without sender credentials, attempts become Failed with a configuration error. Configure controlled destinations before using the demo if you want to verify real sending.
 
 In another terminal:
 
