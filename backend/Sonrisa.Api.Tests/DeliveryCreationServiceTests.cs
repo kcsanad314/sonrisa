@@ -72,6 +72,51 @@ public sealed class DeliveryCreationServiceTests
     }
 
     [Fact]
+    public async Task ReprocessingInNewDbContextPreservesFailedDeliveryState()
+    {
+        await using var fixture = await SqliteFixture.CreateAsync();
+        var (earthquake, _) = await SeedAsync(fixture.Db, NotificationChannel.Email);
+        Assert.Equal(1, await NewService(fixture.Db).CreatePendingDeliveriesAsync(earthquake.Id));
+
+        var delivery = await fixture.Db.Deliveries.SingleAsync();
+        delivery.Status = DeliveryStatus.Failed;
+        delivery.AttemptCount = 2;
+        delivery.LastAttemptAtUtc = AlertCreatedAt.AddDays(2);
+        delivery.LastError = "Fixture timeout";
+        await fixture.Db.SaveChangesAsync();
+
+        await using var freshDb = fixture.CreateDbContext();
+        Assert.Equal(0, await NewService(freshDb).CreatePendingDeliveriesAsync(earthquake.Id));
+
+        var persisted = await freshDb.Deliveries.SingleAsync();
+        Assert.Equal(DeliveryStatus.Failed, persisted.Status);
+        Assert.Equal(2, persisted.AttemptCount);
+        Assert.Equal(AlertCreatedAt.AddDays(2), persisted.LastAttemptAtUtc);
+        Assert.Equal("Fixture timeout", persisted.LastError);
+        Assert.Equal(1, await freshDb.Deliveries.CountAsync());
+    }
+
+    [Fact]
+    public async Task CreatesOneDeliveryForEachDistinctEarthquake()
+    {
+        await using var fixture = await SqliteFixture.CreateAsync();
+        var (firstEarthquake, _) = await SeedAsync(fixture.Db, NotificationChannel.Email);
+        var secondEarthquake = NewEarthquake(firstEarthquake.OccurredAtUtc.AddMinutes(1));
+        fixture.Db.EarthquakeEvents.Add(secondEarthquake);
+        await fixture.Db.SaveChangesAsync();
+        var service = NewService(fixture.Db);
+
+        Assert.Equal(1, await service.CreatePendingDeliveriesAsync(firstEarthquake.Id));
+        Assert.Equal(1, await service.CreatePendingDeliveriesAsync(secondEarthquake.Id));
+
+        var eventIds = await fixture.Db.Deliveries
+            .Select(delivery => delivery.EarthquakeEventId)
+            .OrderBy(id => id)
+            .ToListAsync();
+        Assert.Equal(new[] { firstEarthquake.Id, secondEarthquake.Id }.OrderBy(id => id), eventIds);
+    }
+
+    [Fact]
     public async Task CreatesSeparateDeliveriesForOverlappingAlerts()
     {
         await using var fixture = await SqliteFixture.CreateAsync();
@@ -166,16 +211,7 @@ public sealed class DeliveryCreationServiceTests
         AppDbContext db,
         params NotificationChannel[] channels)
     {
-        var earthquake = new EarthquakeEvent
-        {
-            SourceEventId = Guid.NewGuid().ToString("N"),
-            OccurredAtUtc = AlertCreatedAt.AddDays(1),
-            FirstSeenAtUtc = AlertCreatedAt.AddDays(1),
-            Magnitude = 5.0,
-            Place = "Fixture location",
-            Title = "Fixture earthquake",
-            SourceUrl = "https://example.test/earthquake"
-        };
+        var earthquake = NewEarthquake(AlertCreatedAt.AddDays(1));
         var alert = NewAlert();
         db.EarthquakeEvents.Add(earthquake);
         db.Alerts.Add(alert);
@@ -191,6 +227,17 @@ public sealed class DeliveryCreationServiceTests
         return (earthquake, alert);
     }
 
+    private static EarthquakeEvent NewEarthquake(DateTime occurredAtUtc) => new()
+    {
+        SourceEventId = Guid.NewGuid().ToString("N"),
+        OccurredAtUtc = occurredAtUtc,
+        FirstSeenAtUtc = occurredAtUtc,
+        Magnitude = 5.0,
+        Place = "Fixture location",
+        Title = "Fixture earthquake",
+        SourceUrl = "https://example.test/earthquake"
+    };
+
     private sealed class SqliteFixture : IAsyncDisposable
     {
         private readonly SqliteConnection _connection;
@@ -201,6 +248,11 @@ public sealed class DeliveryCreationServiceTests
             _connection = connection;
             Db = db;
         }
+
+        public AppDbContext CreateDbContext() => new(
+            new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlite(_connection)
+                .Options);
 
         public static async Task<SqliteFixture> CreateAsync()
         {
