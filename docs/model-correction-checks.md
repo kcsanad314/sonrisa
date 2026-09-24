@@ -2,6 +2,8 @@
 
 24 September 2026
 
+Historical check record: the two migrations described below were later consolidated into one clean initial migration before feature work began.
+
 - Removed alert deletion and its timestamp. Channel selection is now `AlertChannel(AlertId, Channel)`, with a composite primary key. `Alert` has no per-channel flags.
 - Backend build passed with zero warnings and errors.
 - Applied `SimplifyAlertsAndAddChannels` to the local SQLite database. Confirmed the old columns are absent, the new table has the composite key, and `PRAGMA foreign_key_check` reports no violations.

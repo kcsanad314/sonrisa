@@ -20,11 +20,8 @@ namespace Sonrisa.Api.Data.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     MinimumMagnitude = table.Column<double>(type: "REAL", nullable: false),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    EmailEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    SlackEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    DeletedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,6 +45,24 @@ namespace Sonrisa.Api.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EarthquakeEvents", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AlertChannels",
+                columns: table => new
+                {
+                    AlertId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Channel = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlertChannels", x => new { x.AlertId, x.Channel });
+                    table.ForeignKey(
+                        name: "FK_AlertChannels_Alerts_AlertId",
+                        column: x => x.AlertId,
+                        principalTable: "Alerts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -102,6 +117,9 @@ namespace Sonrisa.Api.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AlertChannels");
+
             migrationBuilder.DropTable(
                 name: "Deliveries");
 

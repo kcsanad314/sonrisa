@@ -11,7 +11,7 @@ using Sonrisa.Api.Data;
 namespace Sonrisa.Api.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260924104922_InitialCreate")]
+    [Migration("20260924123306_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,12 +29,6 @@ namespace Sonrisa.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DeletedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("EmailEnabled")
-                        .HasColumnType("INTEGER");
-
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("INTEGER");
 
@@ -45,15 +39,25 @@ namespace Sonrisa.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("SlackEnabled")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Alerts");
+                });
+
+            modelBuilder.Entity("Sonrisa.Api.Data.Entities.AlertChannel", b =>
+                {
+                    b.Property<int>("AlertId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Channel")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("AlertId", "Channel");
+
+                    b.ToTable("AlertChannels");
                 });
 
             modelBuilder.Entity("Sonrisa.Api.Data.Entities.Delivery", b =>
@@ -132,6 +136,15 @@ namespace Sonrisa.Api.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("EarthquakeEvents");
+                });
+
+            modelBuilder.Entity("Sonrisa.Api.Data.Entities.AlertChannel", b =>
+                {
+                    b.HasOne("Sonrisa.Api.Data.Entities.Alert", null)
+                        .WithMany()
+                        .HasForeignKey("AlertId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Sonrisa.Api.Data.Entities.Delivery", b =>
