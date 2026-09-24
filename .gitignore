@@ -17,3 +17,7 @@
 **/appsettings.Local.json
 **/.env
 **/.env.local
+
+# Visual Studio local files
+.vs/
+*.csproj.user
