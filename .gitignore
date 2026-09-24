@@ -1,0 +1,19 @@
+# .NET and local data
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Angular and local package cache
+**/node_modules/
+**/.angular/
+.npm-cache/
+
+# Local settings and secrets
+**/appsettings.Local.json
+**/.env
+**/.env.local

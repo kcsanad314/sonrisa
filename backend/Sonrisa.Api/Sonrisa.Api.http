@@ -1,0 +1,6 @@
+@Sonrisa.Api_HostAddress = http://localhost:5003
+
+GET {{Sonrisa.Api_HostAddress}}/health
+Accept: application/json
+
+###

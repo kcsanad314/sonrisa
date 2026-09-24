@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Sonrisa.Api/Sonrisa.Api.csproj" />
+  </Folder>
+</Solution>
