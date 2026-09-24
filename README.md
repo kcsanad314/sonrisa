@@ -22,11 +22,24 @@ cd backend/Sonrisa.Api
 dotnet run
 ```
 
-The API currently exposes `GET /health`. Startup applies the EF migrations and creates the ignored `backend/Sonrisa.Api/sonrisa.db` file when run from that directory. The background worker immediately reads the [USGS M2.5+ past-day feed](https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson), then polls every five minutes. The first successful poll stores events and a single baseline timestamp without creating deliveries. Later polls create pending deliveries only for newly inserted events whose occurrence time is after that timestamp. Existing USGS IDs are ignored even if USGS revises their data, so a magnitude revision across an alert threshold will not generate a delivery. Outages longer than the feed's one-day window can miss events.
+Startup applies the EF migrations and creates the ignored `backend/Sonrisa.Api/sonrisa.db` file when run from that directory. The API provides `GET /health` and local operator endpoints under `/api` for alerts, earthquakes, and deliveries. In Development, `POST /api/demo/earthquake` triggers the fixture demo. The background worker immediately reads the [USGS M2.5+ past-day feed](https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson), then polls every five minutes. The first successful poll stores events and a single baseline timestamp without creating deliveries. Later polls create pending deliveries only for newly inserted events whose occurrence time is after that timestamp. Existing USGS IDs are ignored even if USGS revises their data, so a magnitude revision across an alert threshold will not generate a delivery. Outages longer than the feed's one-day window can miss events.
 
 ## Notification configuration
 
-Set these environment variables locally before starting the API. Use your actual values; do not commit credentials or webhook URLs. ASP.NET Core maps `__` to nested configuration keys.
+Configure only the channels you intend to use before starting the API. For local testing, run these commands from `backend/Sonrisa.Api` and replace the placeholders with controlled destinations and credentials:
+
+```powershell
+dotnet user-secrets set "Notifications:Email:SmtpHost" "<smtp-host>"
+dotnet user-secrets set "Notifications:Email:Port" "587"
+dotnet user-secrets set "Notifications:Email:UseSsl" "true"
+dotnet user-secrets set "Notifications:Email:From" "<sender-address>"
+dotnet user-secrets set "Notifications:Email:To" "<recipient-address>"
+dotnet user-secrets set "Notifications:Email:Username" "<smtp-username>"
+dotnet user-secrets set "Notifications:Email:Password" "<smtp-password>"
+dotnet user-secrets set "Notifications:Slack:WebhookUrl" "<https-incoming-webhook-url>"
+```
+
+Omit both `Username` and `Password` if the SMTP server needs no authentication. .NET user-secrets stay outside this repository and load when the API runs in Development. Do not commit credentials or webhook URLs. Environment variables also work; ASP.NET Core maps `__` to nested configuration keys:
 
 | Channel | Environment variables |
 | --- | --- |
