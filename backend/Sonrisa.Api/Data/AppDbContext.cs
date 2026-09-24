@@ -9,9 +9,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<AlertChannel> AlertChannels => Set<AlertChannel>();
     public DbSet<Delivery> Deliveries => Set<Delivery>();
+    public DbSet<IngestionState> IngestionStates => Set<IngestionState>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<IngestionState>(entity =>
+        {
+            entity.Property(item => item.Id).ValueGeneratedNever();
+        });
+
         modelBuilder.Entity<EarthquakeEvent>(entity =>
         {
             entity.HasIndex(item => item.SourceEventId).IsUnique();

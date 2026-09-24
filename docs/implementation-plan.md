@@ -18,8 +18,9 @@ One ASP.NET Core .NET 10 application hosts the API and polling job. Angular prov
 | `Alert` | ID, name, minimum magnitude (`double`), enabled, created UTC, updated UTC. No deletion action. |
 | `AlertChannel` | Alert ID and channel, unique together. Stores an alert's selected channels without per-channel columns on `Alert`. |
 | `Delivery` | ID, earthquake ID, alert ID, channel, status, attempt count, last attempt UTC, last error. Unique on earthquake + alert + channel. |
+| `IngestionState` | One fixed-ID row containing the first successful feed baseline time. No poll history. |
 
-Store timestamps as UTC `DateTime`. No generic event payload, source registry, user table, destination table, or poll-status table is needed. Logs can show poll failures; the admin page focuses on events and delivery results. A small bounded retry for failed deliveries is useful if time permits; failure visibility is required.
+Store timestamps as UTC `DateTime`. No generic event payload, source registry, user table, destination table, or poll-history table is needed. The baseline row prevents first-startup backlog notifications. Logs can show poll failures; the admin page focuses on events and delivery results. A small bounded retry for failed deliveries is useful if time permits; failure visibility is required.
 
 Existing feed events must not trigger alerts created later. Repeated polls must not create repeated earthquakes or deliveries. Two overlapping alerts may each produce a notification; document this behavior.
 
